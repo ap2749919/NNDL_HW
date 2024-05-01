@@ -5,3 +5,4 @@
 
 测试：main.py中的test_model()函数，加载已经存储的npz参数文件进行预测。
 
+权重Google Drive链接：https://drive.google.com/file/d/1yP7DAMgZed4yuP0cxcFLAQypqE8kNOQD/view?usp=share_link
