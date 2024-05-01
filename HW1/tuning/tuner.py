@@ -8,7 +8,6 @@ class Tuner:
         self.valid_data = valid_data
 
     def tune(self):
-        # Define ranges for hyperparameters
         learning_rates = [0.001, 0.01, 0.1]
         hidden_sizes = [50, 100, 150]
         regularization_strengths = [0.0001, 0.001, 0.01]
@@ -17,7 +16,7 @@ class Tuner:
         best_params = {}
         results = []
 
-        # Grid search over hyperparameters
+        # Grid search
         for lr in learning_rates:
             for hidden_size in hidden_sizes:
                 for reg in regularization_strengths:
@@ -38,7 +37,7 @@ class Tuner:
         return results, best_params
 
     def log_results(self, results):
-        # Log or save the tuning results
+        # 存储log
         with open('tuning_results.txt', 'w') as f:
             for result in results:
                 f.write(f'LR: {result[0]}, Hidden: {result[1]}, Reg: {result[2]}, Loss: {result[3]:.4f}\n')

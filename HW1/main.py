@@ -10,7 +10,7 @@ import math
 import sys
 sys.path.append('.')
 
-# Load data
+# 加载数据
 X_train, y_train = mnist_reader.load_mnist('data', kind='train')
 X_test, y_test = mnist_reader.load_mnist('data', kind='t10k')
 
@@ -20,7 +20,7 @@ X_test = X_test.reshape(X_test.shape[0], -1) / 255.0
 
 
 
-# Convert labels to one-hot encoding
+# 转换label编码
 def one_hot_encode(y, num_classes=10):
     return np.eye(num_classes)[y]
 
@@ -43,11 +43,7 @@ X_train, y_train, X_valid, y_valid = split_train_validation(X_train, y_train, va
 def search_params():
     # 搜索参数
     tuner = Tuner((X_train, y_train), (X_valid, y_valid))
-    _, best_params = tuner.tune()
-
-    best_params = {'hidden_size': 150, 'lr': 0.001, 'reg_lambda': 0.0001}
-
-    
+    _, best_params = tuner.tune()    
     return best_params
 
 def train_model(search=0):
@@ -59,7 +55,7 @@ def train_model(search=0):
     best_hidden_size = best_params['hidden_size']
     best_lr = best_params['lr']
     best_reg_lambda = best_params['reg_lambda']
-    model = NeuralNetwork(input_size=784, hidden_size=best_hidden_size, output_size=10)  # Adjust as necessary
+    model = NeuralNetwork(input_size=784, hidden_size=best_hidden_size, output_size=10)  
 
     # 使用训练集与验证集绘制loss/auc曲线
     trainer = Trainer(model, (X_train, y_train), (X_valid, y_valid), lr=best_lr, reg_lambda=best_reg_lambda)
@@ -68,10 +64,11 @@ def train_model(search=0):
     # 使用全部训练集训练模型, 并在测试集上测试
     trainer = Trainer(model, (X_train, y_train), (X_test, y_test), lr=best_lr, reg_lambda=best_reg_lambda)
     trainer.train(epochs=50) 
+    return best_params
 
-def test_model():
+def test_model(hidden_szie=150):
     # 在测试集上测试
-    tester = Tester((X_test, y_test))
+    tester = Tester((X_test, y_test), hidden_szie=hidden_szie)
     tester.test()
 
 
@@ -82,25 +79,21 @@ def load_model_weights(file_path):
     return W1
 
 def plot_weights(W):
-    # Assume W has shape (input_size, hidden_size), for MNIST input_size might be 784 and you can reshape it to 28x28
     hidden_size = W.shape[1]
-    # Set up the grid layout for subplots
-    # Choose a square-like shape for the grid
     rows = int(math.sqrt(hidden_size))
     cols = int(np.ceil(hidden_size / rows))
     
     fig, axes = plt.subplots(nrows=rows, ncols=cols, figsize=(cols * 2, rows * 2))
-    # If axes is not an array (when there is only one subplot), make it an array for consistent handling
     if hidden_size == 1:
         axes = np.array([axes])
     
     for i, ax in enumerate(axes.flat):
         if i < hidden_size:
-            img = W[:, i].reshape(28, 28)  # Reshaping to 28x28 if MNIST
+            img = W[:, i].reshape(28, 28)  # 28x28
             ax.imshow(img, cmap='viridis', interpolation='nearest')
             ax.axis('off')
         else:
-            ax.axis('off')  # Hide any unused subplots
+            ax.axis('off')  
 
     # plt.show()
     plt.tight_layout()
@@ -113,6 +106,6 @@ def save_weights_plot():
     plot_weights(W1)
 
 if __name__ == '__main__':
-    train_model(search=0)
-    test_model()
+    best_params = train_model(search=0)
+    test_model(best_params['hidden_size'])
     save_weights_plot()

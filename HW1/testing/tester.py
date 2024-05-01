@@ -2,15 +2,16 @@ import numpy as np
 from models.neural_network import NeuralNetwork
 
 class Tester:
-    def __init__(self, test_data, model_path='best_model_weights.npz'):
+    def __init__(self, test_data, hidden_szie=150, model_path='best_model_weights.npz'):
         self.test_data = test_data
+        self.hidden_size = hidden_szie
         self.model_path = model_path
         self.model = self.load_model()
 
     def load_model(self):
-        # Load weights from file
+        # 加载模型权重
         data = np.load(self.model_path)
-        model = NeuralNetwork(input_size=784, hidden_size=100, output_size=10)  # Adjust sizes as needed
+        model = NeuralNetwork(input_size=784, hidden_size=self.hidden_size, output_size=10)  # Adjust sizes as needed
         model.W1 = data['W1']
         model.b1 = data['b1']
         model.W2 = data['W2']

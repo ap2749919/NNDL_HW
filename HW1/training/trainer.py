@@ -18,14 +18,12 @@ class Trainer:
         self.val_accuracies = []
 
     def train_epoch(self):
-        # Shuffle training data
         indices = np.arange(self.train_data[0].shape[0])
         np.random.shuffle(indices)
         X_train = self.train_data[0][indices]
         y_train = self.train_data[1][indices]
         total_loss, total_batches = 0, 0
         
-        # Create batches and train
         for X_batch, Y_batch in self.get_batches((X_train, y_train), batch_size=32):
             Y_hat = self.model.forward(X_batch)
             loss = self.model.compute_loss(Y_batch, Y_hat) + self.regularization_loss()
@@ -36,22 +34,19 @@ class Trainer:
         self.train_losses.append(average_loss)
 
     def regularization_loss(self):
-        # L2 regularization
         return 0.5 * self.reg_lambda * (np.sum(self.model.W1 ** 2) + np.sum(self.model.W2 ** 2))
 
     def get_batches(self, data, batch_size):
-        # Generator to yield batches
         for i in range(0, len(data[0]), batch_size):
             yield data[0][i:i+batch_size], data[1][i:i+batch_size]
 
     def evaluate_accuracy(self, Y, Y_hat):
-        # Calculate accuracy
         predicted_labels = np.argmax(Y_hat, axis=1)
         true_labels = np.argmax(Y, axis=1)
         return np.mean(predicted_labels == true_labels)
 
     def validate(self):
-        # Validate model on validation set
+        # 验证
         X_val, Y_val = self.valid_data
         Y_hat_val = self.model.forward(X_val)
         val_loss = self.model.compute_loss(Y_val, Y_hat_val) + self.regularization_loss()
@@ -77,15 +72,13 @@ class Trainer:
     
 
     def save_model(self):
-        # Save the best model weights
+        # 存储模型权重
         np.savez('best_model_weights.npz', W1=self.best_weights[0], b1=self.best_weights[1], W2=self.best_weights[2], b2=self.best_weights[3])
         print("Best model saved.")
 
     def plot_metrics(self):
-        # Generate file name based on hyperparameters
         file_name = f'{100}-{self.lr}-{self.reg_lambda}'
 
-        # Plot training and validation losses, and validation accuracy
         plt.figure(figsize=(12, 5))
         plt.subplot(1, 2, 1)
         plt.plot(self.train_losses, label='Training Loss')
