@@ -7,16 +7,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-path = '/Users/jiaruinan/Library/Mobile Documents/com~apple~CloudDocs/Courses/24年春/神经网络与深度学习/HW1/data'
 import sys
-sys.path.append(path)
+sys.path.append('.')
 
 # Load data
 X_train, y_train = mnist_reader.load_mnist('data', kind='train')
 X_test, y_test = mnist_reader.load_mnist('data', kind='t10k')
 
-# Preprocess and prepare the data
-# Assuming data needs to be reshaped or normalized
+
 X_train = X_train.reshape(X_train.shape[0], -1) / 255.0
 X_test = X_test.reshape(X_test.shape[0], -1) / 255.0
 
@@ -41,31 +39,40 @@ def split_train_validation(X, y, validation_fraction=0.2):
 
 X_train, y_train, X_valid, y_valid = split_train_validation(X_train, y_train, validation_fraction=0.2)
 
-# # Optionally perform tuning
-# tuner = Tuner((X_train, y_train), (X_valid, y_valid))
-# _, best_params = tuner.tune()
 
-best_params = {'hidden_size': 150, 'lr': 0.001, 'reg_lambda': 0.0001}
+def search_params():
+    # 搜索参数
+    tuner = Tuner((X_train, y_train), (X_valid, y_valid))
+    _, best_params = tuner.tune()
 
-best_hidden_size = best_params['hidden_size']
-best_lr = best_params['lr']
-best_reg_lambda = best_params['reg_lambda']
+    best_params = {'hidden_size': 150, 'lr': 0.001, 'reg_lambda': 0.0001}
 
+    
+    return best_params
 
-# model = NeuralNetwork(input_size=784, hidden_size=best_hidden_size, output_size=10)  # Adjust as necessary
+def train_model(search=0):
+    if search:
+        best_params = search_params()
+    else:
+        best_params = {'hidden_size': 150, 'lr': 0.001, 'reg_lambda': 0.0001}
 
-# # 使用训练集与验证集绘制loss/auc曲线
-# trainer = Trainer(model, (X_train, y_train), (X_valid, y_valid), lr=best_lr, reg_lambda=best_reg_lambda)
-# trainer.train(epochs=50)  # Number of epochs can be adjusted
+    best_hidden_size = best_params['hidden_size']
+    best_lr = best_params['lr']
+    best_reg_lambda = best_params['reg_lambda']
+    model = NeuralNetwork(input_size=784, hidden_size=best_hidden_size, output_size=10)  # Adjust as necessary
 
-# # 使用全部训练集训练模型, 并在测试集上测试
-# trainer = Trainer(model, (X_train, y_train), (X_test, y_test), lr=best_lr, reg_lambda=best_reg_lambda)
-# trainer.train(epochs=50)  # Number of epochs can be adjusted
+    # 使用训练集与验证集绘制loss/auc曲线
+    trainer = Trainer(model, (X_train, y_train), (X_valid, y_valid), lr=best_lr, reg_lambda=best_reg_lambda)
+    trainer.train(epochs=50)  
 
-# # 在测试集上测试
-# tester = Tester((X_test, y_test))
-# tester.test()
+    # 使用全部训练集训练模型, 并在测试集上测试
+    trainer = Trainer(model, (X_train, y_train), (X_test, y_test), lr=best_lr, reg_lambda=best_reg_lambda)
+    trainer.train(epochs=50) 
 
+def test_model():
+    # 在测试集上测试
+    tester = Tester((X_test, y_test))
+    tester.test()
 
 
 # 对模型的权重进行可视化
@@ -101,6 +108,11 @@ def plot_weights(W):
     plt.savefig(f'weights.pdf')
     plt.close()
 
-# Example usage:
-W1 = load_model_weights('best_model_weights.npz')
-plot_weights(W1)
+def save_weights_plot():
+    W1 = load_model_weights('best_model_weights.npz')
+    plot_weights(W1)
+
+if __name__ == '__main__':
+    train_model(search=0)
+    test_model()
+    save_weights_plot()
